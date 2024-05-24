@@ -12,7 +12,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Companion.AI",
+  title: "achieve-goals.ai",
   description: "Your customized companion.",
 };
 
