@@ -8,6 +8,30 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id              String @id @unique
+  aiRequestsCount Int    @default(0)
+
+  subscription Subscription?
+  goals        Goal[]
+  posts        Post[]
+  stressLevel  StressLevel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Category {
   id         String      @id @default(uuid())
   name       String
@@ -19,20 +43,68 @@ model Companion {
   userId       String
   userName     String
   src          String
-  name         String @db.Text
-  description  String
+  name         String
+  description  String @db.Text
   instructions String @db.Text
   seed         String @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId String
+  Goal Goal[]
 
-  messages Message[]
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([categoryId])
+}
+
+model Goal {
+  id                 String   @id @default(cuid())
+  title              String
+  description        String   @db.Text
+  reasons            String[]
+  accomplishCriteria String
+
+  createdDate DateTime @default(now())
+
+  goalStatus   GoalStatus
+  posts        Post[]
+  stressLevels StressLevel[]
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companionId String?
+  companion   Companion? @relation(fields: [companionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([companionId])
+}
+
+enum GoalStatus {
+  archived
+  current
+  achieved
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role     Role
+  postType PostType
+
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId        String
+  goal          Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  stressLevelId String?      @unique
+  stressLevel   StressLevel? @relation(fields: [stressLevelId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([goalId])
 }
 
 enum Role {
@@ -40,35 +112,23 @@ enum Role {
   system
 }
 
-model Message {
-  id        String   @id @default(uuid())
-  role      Role
-  content   String   @db.Text()
+enum PostType {
+  progress
+  plan
+}
+
+model StressLevel {
+  id        String   @id @default(cuid())
+  level     Int
+  reason    String?  @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  companionId String
-  userId      String
+  post   Post?
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId String?
+  goal   Goal?   @relation(fields: [goalId], references: [id], onDelete: SetNull)
 
-  companion Companion @relation(fields: [companionId], references: [id], onDelete: Cascade)
-
-  @@index([companionId])
-}
-
-model UserSubscription {
-  id                     String    @id @default(cuid())
-  userId                 String    @unique
-  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
-  stripePriceId          String?   @map(name: "stripe_price_id")
-  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
-}
-
-model UserSettings {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  aiRequestsCount Int      @default(0)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  @@index([userId])
+  @@index([goalId])
 }
