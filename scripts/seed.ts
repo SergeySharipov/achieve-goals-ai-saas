@@ -4,7 +4,7 @@ const db = new PrismaClient();
 
 async function main() {
   try {
-    await db.category.createMany({
+    await db.CompanionCategory.createMany({
       data: [
         { name: "Famous People" },
         { name: "Movies & TV" },

@@ -8,33 +8,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id              String @id @unique
+model UserData {
+  userId          String @id @unique
   aiRequestsCount Int    @default(0)
 
-  subscription Subscription?
-  goals        Goal[]
-  posts        Post[]
-  stressLevel  StressLevel[]
+  userSubscription UserSubscription?
+  goals            Goal[]
+  goalPosts        GoalPost[]
+  stressLevels     StressLevel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Subscription {
+model UserSubscription {
   id                     String    @id @default(cuid())
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
   stripePriceId          String?   @map(name: "stripe_price_id")
   stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String   @unique
+  userData UserData @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
-model Category {
-  id         String      @id @default(uuid())
-  name       String
+model CompanionCategory {
+  id   String @id @default(uuid())
+  name String
+
   companions Companion[]
 }
 
@@ -51,10 +52,10 @@ model Companion {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Goal Goal[]
+  goals Goal[]
 
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId String
+  category   CompanionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([categoryId])
 }
@@ -66,14 +67,14 @@ model Goal {
   reasons            String[]
   accomplishCriteria String
 
-  createdDate DateTime @default(now())
+  createdAt DateTime @default(now())
 
   goalStatus   GoalStatus
-  posts        Post[]
+  goalPosts    GoalPost[]
   stressLevels StressLevel[]
 
   userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userData    UserData   @relation(fields: [userId], references: [userId], onDelete: Cascade)
   companionId String?
   companion   Companion? @relation(fields: [companionId], references: [id], onDelete: SetNull)
 
@@ -87,17 +88,17 @@ enum GoalStatus {
   achieved
 }
 
-model Post {
+model GoalPost {
   id        String   @id @default(uuid())
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   role     Role
-  postType PostType
+  postType GoalPostType
 
   userId        String
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userData      UserData     @relation(fields: [userId], references: [userId], onDelete: Cascade)
   goalId        String
   goal          Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
   stressLevelId String?      @unique
@@ -112,7 +113,7 @@ enum Role {
   system
 }
 
-enum PostType {
+enum GoalPostType {
   progress
   plan
 }
@@ -123,11 +124,11 @@ model StressLevel {
   reason    String?  @db.Text
   createdAt DateTime @default(now())
 
-  post   Post?
-  userId String
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goalId String?
-  goal   Goal?   @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  goalPost GoalPost?
+  userId   String
+  userData UserData  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  goalId   String?
+  goal     Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([goalId])
