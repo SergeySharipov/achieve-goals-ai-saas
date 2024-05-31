@@ -7,7 +7,7 @@ import { ChatRequestOptions } from "ai";
 import { SendHorizonal } from "lucide-react";
 import { ChangeEvent, FormEvent } from "react";
 
-interface ChatFormProps {
+interface GoalPostFormProps {
   isLoading: boolean;
   input: string;
   handleInputChange: (
@@ -15,16 +15,16 @@ interface ChatFormProps {
   ) => void;
   onSubmit: (
     e: FormEvent<HTMLFormElement>,
-    chatRequestOptions?: ChatRequestOptions | undefined,
+    goalPostRequestOptions?: ChatRequestOptions | undefined,
   ) => void;
 }
 
-export const ChatForm = ({
+export const GoalPostForm = ({
   isLoading,
   input,
   handleInputChange,
   onSubmit,
-}: ChatFormProps) => {
+}: GoalPostFormProps) => {
   return (
     <form
       onSubmit={onSubmit}

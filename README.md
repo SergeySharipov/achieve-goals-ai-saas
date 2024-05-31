@@ -18,10 +18,6 @@
 
 - **Cloudinary**: The application integrates with Cloudinary for efficient image management. This includes uploading, storing, transforming, and delivering media content seamlessly.
 
-- **Pinecone**: The app incorporates Pinecone for vector search capabilities, enabling fast and accurate similarity searches, essential for recommendation engines and AI-driven searches.
-
-- **Upstash Redis**: The application uses Upstash Redis for managing real-time data and caching, providing low-latency access to frequently accessed data and enhancing overall performance.
-
 - **Stripe Integration**: The application seamlessly incorporates Stripe for secure and efficient payment processing. Users can subscribe to a premium plan and access additional services.
 
 - **Vercel**: The application is deployed and hosted on Vercel, a cloud platform optimized for Next.js applications. Vercel provides a seamless deployment experience with features like automatic builds, preview deployments, and serverless functions. This ensures that the application is always up-to-date and scales effortlessly to meet user demand.

@@ -9,7 +9,7 @@ import { Copy } from "lucide-react";
 import { useTheme } from "next-themes";
 import { BeatLoader } from "react-spinners";
 
-export interface ChatMessageProps {
+export interface GoalPostProps {
   role: "system" | "user";
   content?: string;
   isLoading?: boolean;
@@ -17,12 +17,12 @@ export interface ChatMessageProps {
   id?: string;
 }
 
-export const ChatMessage = ({
+export const GoalPost = ({
   role,
   content,
   isLoading,
   src,
-}: ChatMessageProps) => {
+}: GoalPostProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
 

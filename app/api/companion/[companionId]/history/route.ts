@@ -5,12 +5,12 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { companionId: string } },
+  { params }: { params: { goalId: string } },
 ) {
   try {
     const user = await currentUser();
 
-    if (!params.companionId) {
+    if (!params.goalId) {
       return new NextResponse("Companion ID is required", { status: 400 });
     }
 
@@ -18,17 +18,9 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const memoryManager = await MemoryManager.getInstance();
-    const companionKey = {
-      companionId: params.companionId,
-      userId: user.id,
-      modelName: "gpt-3.5-turbo",
-    };
-    await memoryManager.clearHistory(companionKey);
-
-    await prismadb.message.deleteMany({
+    await prismadb.goalPost.deleteMany({
       where: {
-        companionId: params.companionId,
+        goalId: params.goalId,
         userId: user.id,
       },
     });

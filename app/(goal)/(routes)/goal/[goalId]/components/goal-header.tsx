@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@clerk/nextjs";
-import { Companion, Message } from "@prisma/client";
+import { Companion, Goal } from "@prisma/client";
 import axios from "axios";
 import {
   ChevronLeft,
@@ -22,46 +22,47 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-interface ChatHeaderProps {
-  companion: Companion & {
-    messages: Message[];
-  };
+interface GoalHeaderProps {
+  goal: Goal,
+  companion: Companion
 }
 
-export const ChatHeader = ({ companion }: ChatHeaderProps) => {
+export const GoalHeader = ({ goal, companion }: GoalHeaderProps) => {
   const router = useRouter();
   const { user } = useUser();
   const { toast } = useToast();
 
+  // TODO
   const onDelete = async () => {
-    try {
-      await axios.delete(`/api/companion/${companion.id}`);
+    // try {
+    //   await axios.delete(`/api/goal/${goal.id}`);
 
-      toast({ description: "Success." });
+    //   toast({ description: "Success." });
 
-      router.refresh();
-      router.push("/");
-    } catch (error) {
-      toast({
-        description: "Something went wrong.",
-        variant: "destructive",
-      });
-    }
+    //   router.refresh();
+    //   router.push("/");
+    // } catch (error) {
+    //   toast({
+    //     description: "Something went wrong.",
+    //     variant: "destructive",
+    //   });
+    // }
   };
 
+  // TODO
   const onClearMessageHistory = async () => {
-    try {
-      await axios.delete(`/api/companion/${companion.id}/history`);
+    // try {
+    //   await axios.delete(`/api/goal/${goal.id}/history`);
 
-      toast({ description: "Success." });
+    //   toast({ description: "Success." });
 
-      router.refresh();
-    } catch (error) {
-      toast({
-        description: "Something went wrong.",
-        variant: "destructive",
-      });
-    }
+    //   router.refresh();
+    // } catch (error) {
+    //   toast({
+    //     description: "Something went wrong.",
+    //     variant: "destructive",
+    //   });
+    // }
   };
 
   return (
@@ -76,7 +77,6 @@ export const ChatHeader = ({ companion }: ChatHeaderProps) => {
             <p className="font-bold">{companion.name}</p>
             <div className="flex items-center text-xs text-muted-foreground">
               <MessageSquare className="mr-1 h-3 w-3" />
-              {companion.messages.length}
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -93,10 +93,10 @@ export const ChatHeader = ({ companion }: ChatHeaderProps) => {
             <History className="mr-2 h-4 w-4" />
             Clear Message History
           </DropdownMenuItem>
-          {user?.id === companion.userId && (
+          {user?.id === goal.userId && (
             <>
               <DropdownMenuItem
-                onClick={() => router.push(`/companion/${companion.id}`)}
+                onClick={() => router.push(`/goal/${goal.id}`)}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit

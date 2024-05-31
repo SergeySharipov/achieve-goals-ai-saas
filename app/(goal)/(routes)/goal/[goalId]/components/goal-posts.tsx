@@ -2,23 +2,23 @@
 
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { Companion } from "@prisma/client";
-import { ChatMessage, ChatMessageProps } from "./chat-message";
+import { GoalPost, GoalPostProps } from "./goal-post";
 
-interface ChatMessagesProps {
-  messages: ChatMessageProps[];
+interface GoalPostsProps {
+  goalPosts: GoalPostProps[];
   isLoading: boolean;
   companion: Companion;
 }
 
-export const ChatMessages = ({
-  messages = [],
+export const GoalPosts = ({
+  goalPosts = [],
   isLoading,
   companion,
-}: ChatMessagesProps) => {
+}: GoalPostsProps) => {
   const scrollRef = useRef<ElementRef<"div">>(null);
 
   const [fakeLoading, setFakeLoading] = useState(
-    messages.length === 0 ? true : false,
+    goalPosts.length === 0 ? true : false,
   );
 
   useEffect(() => {
@@ -33,23 +33,23 @@ export const ChatMessages = ({
 
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [goalPosts]);
 
   return (
     <div className="flex-1 overflow-y-auto pr-4">
-      <ChatMessage
+      <GoalPost
         isLoading={fakeLoading}
         src={companion.src}
         role="system"
         content={`Hello, I am ${companion.name}, ${companion.description}`}
       />
-      {messages.map((message) => (
-        <ChatMessage
-          key={message.id}
+      {goalPosts.map((goalPost) => (
+        <GoalPost
+          key={goalPost.id}
           src={companion.src}
-          content={message.content}
-          role={message.role}
-          isLoading={message.isLoading}
+          content={goalPost.content}
+          role={goalPost.role}
+          isLoading={goalPost.isLoading}
         />
       ))}
       <div ref={scrollRef} />

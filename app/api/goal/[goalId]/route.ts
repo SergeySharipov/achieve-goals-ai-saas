@@ -3,15 +3,14 @@ import { StreamingTextResponse, LangChainStream } from "ai";
 import { currentUser } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 
-import { MemoryManager } from "@/lib/memory";
 import { rateLimit } from "@/lib/rate-limit";
 import prismadb from "@/lib/prismadb";
 import { ChatOpenAI } from "@langchain/openai";
 import { CallbackManager } from "@langchain/core/callbacks/manager";
 import {
-  checkAiRequestsCount,
+  canMakeMoreAiRequests,
   decreaseAiRequestsCount,
-} from "@/lib/user-settings";
+} from "@/lib/user-data";
 import { checkSubscription } from "@/lib/subscription";
 
 dotenv.config({ path: `.env` });
@@ -38,68 +37,60 @@ export async function POST(
     const isPro = await checkSubscription();
 
     if (!isPro) {
-      const checkAiRequestsCountResp = await checkAiRequestsCount();
+      const canMakeMoreAiRequestsResp = await canMakeMoreAiRequests();
 
-      if (!checkAiRequestsCountResp) {
+      if (!canMakeMoreAiRequestsResp) {
         return new NextResponse("Premium subscription is required", {
           status: 402,
         });
       }
     }
 
-    const companion = await prismadb.companion.update({
+    let goal = await prismadb.goal.update({
       where: {
         id: params.chatId,
       },
       data: {
-        messages: {
+        goalPosts: {
           create: {
             content: prompt,
             role: "user",
+            postType: "progress",
             userId: user.id,
           },
         },
       },
     });
 
+    if (!goal) {
+      return new NextResponse("Goal not found", { status: 404 });
+    }
+
+    let companion;
+
+    if (!goal.companionId) {
+      companion = await prismadb.companion.findFirst();
+
+      goal = await prismadb.goal.update({
+        where: {
+          id: params.chatId,
+        },
+        data: {
+          companionId: companion!.id,
+        },
+      });
+    } else {
+      companion = await prismadb.companion.findUnique({
+        where: {
+          id: goal.companionId,
+        },
+      });
+    }
+
     if (!companion) {
       return new NextResponse("Companion not found", { status: 404 });
     }
 
-    const companion_file_name = companion.id! + ".txt";
-
-    const companionKey = {
-      companionId: companion.id,
-      userId: user.id,
-      modelName: "gpt-3.5-turbo",
-    };
-    const memoryManager = await MemoryManager.getInstance();
-
-    const records = await memoryManager.readLatestHistory(companionKey);
-    if (records.length === 0) {
-      await memoryManager.seedChatHistory(companion.seed, "\n\n", companionKey);
-    }
-    await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
-
-    // Query Pinecone
-
-    const recentChatHistory =
-      await memoryManager.readLatestHistory(companionKey);
-
-    // Right now the preamble is included in the similarity search, but that
-    // shouldn't be an issue
-
-    const similarDocs = await memoryManager.vectorSearch(
-      recentChatHistory,
-      companion_file_name,
-    );
-
-    console.log("recentChatHistory", recentChatHistory, similarDocs);
-
-    let relevantHistory = "";
-    if (!!similarDocs && similarDocs.length !== 0) {
-      relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
-    }
     const { handlers } = LangChainStream();
 
     const openai = new ChatOpenAI({
@@ -111,6 +102,8 @@ export async function POST(
     // Turn verbose on for debugging
     openai.verbose = true;
 
+    // TODO add ${relevantHistory}
+    // TODO add ${recentChatHistory}\n${companion.name}:
     const resp = await openai
       .invoke(
         `
@@ -118,9 +111,8 @@ export async function POST(
 
         Try to give responses that are straight to the point. 
         Below are relevant details about ${companion.name}'s past and the conversation you are in.
-        ${relevantHistory}
-
-        ${recentChatHistory}\n${companion.name}:`,
+       
+        `,
       )
       .catch(console.error);
 
@@ -135,17 +127,16 @@ export async function POST(
     s.push(content);
     s.push(null);
 
-    memoryManager.writeToHistory("" + content, companionKey);
-
-    await prismadb.companion.update({
+    await prismadb.goal.update({
       where: {
         id: params.chatId,
       },
       data: {
-        messages: {
+        goalPosts: {
           create: {
             content: content,
             role: "system",
+            postType: "progress",
             userId: user.id,
           },
         },

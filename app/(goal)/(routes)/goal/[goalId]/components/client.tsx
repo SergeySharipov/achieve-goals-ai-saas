@@ -2,42 +2,43 @@
 
 import { useCompletion } from "ai/react";
 import { FormEvent, useEffect, useState } from "react";
-import { Companion, Message } from "@prisma/client";
+import { Companion, Goal, GoalPost } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
-import { ChatForm } from "./chat-form";
-import { ChatHeader } from "./chat-header";
-import { ChatMessages } from "./chat-messages";
-import { ChatMessageProps } from "./chat-message";
+import { GoalPostForm } from "./goal-post-form";
+import { GoalHeader } from "./goal-header";
+import { GoalPosts } from "./goal-posts";
+import { GoalPostProps } from "./goal-post";
 import { useToast } from "@/components/ui/use-toast";
 
-interface ChatClientProps {
-  companion: Companion & {
-    messages: Message[];
+interface GoalClientProps {
+  goal: Goal & {
+    goalPosts: GoalPost[];
   };
+  companion: Companion;
 }
 
-export const ChatClient = ({ companion }: ChatClientProps) => {
+export const GoalClient = ({ goal, companion }: GoalClientProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessageProps[]>(
-    companion.messages,
+  const [goalPosts, setGoalPosts] = useState<GoalPostProps[]>(
+    goal.goalPosts,
   );
 
   useEffect(() => {
-    setMessages(companion.messages);
-  }, [companion, setMessages]);
+    setGoalPosts(goal.goalPosts);
+  }, [goal, setGoalPosts]);
 
   const { input, isLoading, handleInputChange, handleSubmit, setInput } =
     useCompletion({
-      api: `/api/chat/${companion.id}`,
+      api: `/api/goal/${goal.id}`,
       onFinish(prompt, completion) {
         setInput("");
 
         router.refresh();
       },
       onError(e) {
-        setMessages(companion.messages);
+        setGoalPosts(goal.goalPosts);
 
         if (e.message == "Premium subscription is required") {
           toast({
@@ -55,30 +56,30 @@ export const ChatClient = ({ companion }: ChatClientProps) => {
     });
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    const userMessage: ChatMessageProps = {
+    const userMessage: GoalPostProps = {
       role: "user",
       content: input,
       id: "user" + new Date().toISOString(),
     };
-    const systemMessage: ChatMessageProps = {
+    const systemMessage: GoalPostProps = {
       role: "system",
       isLoading: true,
       id: "system" + new Date().toISOString(),
     };
-    setMessages((current) => [...current, userMessage, systemMessage]);
+    setGoalPosts((current) => [...current, userMessage, systemMessage]);
 
     handleSubmit(e);
   };
 
   return (
     <div className="flex h-full flex-col space-y-2 p-4">
-      <ChatHeader companion={companion} />
-      <ChatMessages
+      <GoalHeader goal={goal} companion={companion} />
+      <GoalPosts
         companion={companion}
         isLoading={isLoading}
-        messages={messages}
+        goalPosts={goalPosts}
       />
-      <ChatForm
+      <GoalPostForm
         isLoading={isLoading}
         input={input}
         handleInputChange={handleInputChange}
