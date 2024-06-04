@@ -27,7 +27,7 @@ export const Goals = ({ goals }: GoalsProps) => {
           key={item.id}
           className="cursor-pointer rounded-xl border-0 bg-primary/10 transition hover:opacity-75"
         >
-          <Link href={`/chat/${item.id}`}>
+          <Link href={`/feed/${item.id}`}>
             <CardHeader className="flex items-center justify-center text-center text-muted-foreground">
               <p className="font-bold">{item.title}</p>
               <p className="text-xs">{item.description}</p>

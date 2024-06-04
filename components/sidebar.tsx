@@ -32,8 +32,14 @@ export const Sidebar = ({ isPro }: SidebarProps) => {
     },
     {
       icon: Plus,
+      href: "/goal/new",
+      label: "Goal",
+      pro: true,
+    },
+    {
+      icon: Plus,
       href: "/companion/new",
-      label: "Create",
+      label: "Companion",
       pro: true,
     },
     {

@@ -69,14 +69,14 @@ model Goal {
 
   createdAt DateTime @default(now())
 
-  goalStatus   GoalStatus
+  goalStatus   GoalStatus    @default(current)
   goalPosts    GoalPost[]
   stressLevels StressLevel[]
 
   userId      String
-  userData    UserData   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  companionId String?
-  companion   Companion? @relation(fields: [companionId], references: [id], onDelete: SetNull)
+  userData    UserData  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  companionId String
+  companion   Companion @relation(fields: [companionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([companionId])
@@ -85,7 +85,7 @@ model Goal {
 enum GoalStatus {
   archived
   current
-  achieved
+  completed
 }
 
 model GoalPost {

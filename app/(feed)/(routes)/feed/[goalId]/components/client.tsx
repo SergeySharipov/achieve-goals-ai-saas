@@ -31,7 +31,7 @@ export const GoalClient = ({ goal, companion }: GoalClientProps) => {
 
   const { input, isLoading, handleInputChange, handleSubmit, setInput } =
     useCompletion({
-      api: `/api/goal/${goal.id}`,
+      api: `/api/feed/${goal.id}`,
       onFinish(prompt, completion) {
         setInput("");
 
